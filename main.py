@@ -64,27 +64,42 @@ book_now_button.bind("<Enter>", on_hover_book_now_btn)
 book_now_button.bind("<Leave>", on_leave_book_now_btn)
 
 # --- Sliding Left Menu ---
-menu_width = 220
+menu_width = 300
 is_menu_open = False
 
 # Create menu frame (starts off-screen)
-menu_frame = ctk.CTkFrame(root, width=menu_width, corner_radius=0, fg_color="#202020")
-menu_frame.place(x=-menu_width, y=60, relheight=1.0, anchor="nw")  # hidden outside window
+menu_frame = ctk.CTkFrame(root, width=menu_width, corner_radius=12, fg_color="#353935")
+menu_frame.place(x=-menu_width, y=60, anchor="nw")  # hidden outside window
 
 # Example contents inside the menu
 menu_items = ["Home", "My Bookings", "Offers", "Support", "Logout"]
 for item in menu_items:
-    btn = ctk.CTkButton(
-        menu_frame,
-        text=item,
-        corner_radius=0,
-        height=40,
-        fg_color="transparent",
-        hover_color="#333333",
-        anchor="w",
-        font=("Segoe UI", 15),
-    )
-    btn.pack(fill="x", pady=2, padx=10)
+    if item == "Logout":
+        btn = ctk.CTkButton(
+            menu_frame,
+            text=item,
+            corner_radius=12,
+            height=40,
+            fg_color="transparent",
+            hover_color="#333333",
+            anchor="w",
+            font=("Segoe UI", 15),
+        )
+        btn.pack(fill="x", pady=2, padx=10, side=ctk.BOTTOM)
+
+    else :
+        btn = ctk.CTkButton(
+            menu_frame,
+            text=item,
+            corner_radius=12,
+            height=40,
+            fg_color="transparent",
+            hover_color="#333333",
+            anchor="w",
+            font=("Segoe UI", 15),
+        )
+        btn.pack(fill="x", pady=2, padx=10)
+
 
 # --- Smooth Sliding Animation ---
 def animate_menu(target_x):
