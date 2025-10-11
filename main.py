@@ -63,6 +63,60 @@ menu_button.bind("<Leave>", on_leave_menu_btn)
 book_now_button.bind("<Enter>", on_hover_book_now_btn)
 book_now_button.bind("<Leave>", on_leave_book_now_btn)
 
+# --- Sliding Left Menu ---
+menu_width = 220
+is_menu_open = False
+
+# Create menu frame (starts off-screen)
+menu_frame = ctk.CTkFrame(root, width=menu_width, corner_radius=0, fg_color="#202020")
+menu_frame.place(x=-menu_width, y=60, relheight=1.0, anchor="nw")  # hidden outside window
+
+# Example contents inside the menu
+menu_items = ["Home", "My Bookings", "Offers", "Support", "Logout"]
+for item in menu_items:
+    btn = ctk.CTkButton(
+        menu_frame,
+        text=item,
+        corner_radius=0,
+        height=40,
+        fg_color="transparent",
+        hover_color="#333333",
+        anchor="w",
+        font=("Segoe UI", 15),
+    )
+    btn.pack(fill="x", pady=2, padx=10)
+
+# --- Smooth Sliding Animation ---
+def animate_menu(target_x):
+    current_x = menu_frame.winfo_x()
+    step = 20 if target_x > current_x else -20  # speed per frame
+
+    def slide():
+        nonlocal current_x
+        if (step > 0 and current_x < target_x) or (step < 0 and current_x > target_x):
+            current_x += step
+            menu_frame.place(x=current_x, y=60)
+            root.after(10, slide)
+        else:
+            menu_frame.place(x=target_x, y=60)
+
+    slide()
+
+# --- Toggle Menu Function ---
+def toggle_menu():
+    global is_menu_open
+    if is_menu_open:
+        animate_menu(-menu_width)  # slide out
+        is_menu_open = False
+    else:
+        # Bring menu to front before sliding in
+        menu_frame.lift()
+        animate_menu(0)  # slide in
+        is_menu_open = True
+
+# Link button to toggle
+menu_button.configure(command=toggle_menu)
+
 # --- Main Content Area ---
 main_frame = ctk.CTkFrame(root, corner_radius=15)
 main_frame.pack(expand=True, fill="both", padx=20, pady=20)
