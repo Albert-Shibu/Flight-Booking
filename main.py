@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import subprocess
+import sys
 
 # --- Setup Window ---
 ctk.set_appearance_mode("dark")  # or "light"
@@ -46,7 +47,7 @@ book_now_button = ctk.CTkButton(
 book_now_button.place(relx=0.98, rely=0.5, anchor="e")
 
 def open_booking_page():
-    subprocess.Popen([sys.executable, "booking_page.py"])  # or "python3" on mac/linux
+    subprocess.Popen([sys.executable, "book-now.py"])  # or "python3" on mac/linux
 
 book_now_button.configure(command=open_booking_page)
 
