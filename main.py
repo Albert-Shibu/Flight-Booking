@@ -1,4 +1,6 @@
 import customtkinter as ctk
+import subprocess
+import sys
 
 # --- Setup Window ---
 ctk.set_appearance_mode("dark")  # or "light"
@@ -43,6 +45,11 @@ book_now_button = ctk.CTkButton(
     hover_color="#90EE90",
 )
 book_now_button.place(relx=0.98, rely=0.5, anchor="e")
+
+def open_booking_page():
+    subprocess.Popen([sys.executable, "book-now.py"])  # or "python3" on mac/linux
+
+book_now_button.configure(command=open_booking_page)
 
 
 # --- Hover Effects for Nav Buttons ---
