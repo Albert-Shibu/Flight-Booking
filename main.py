@@ -37,7 +37,7 @@ title_label.place(relx=0.5, rely=0.5, anchor="center")
 # --- Right: Book Now Button ---
 book_now_button = ctk.CTkButton(
     nav_frame,
-    text="Book Now",
+    text="Back",
     width=50,
     height=40,
     font=("Segoe UI", 20, "bold"),
@@ -79,7 +79,7 @@ menu_frame = ctk.CTkFrame(root, width=menu_width, corner_radius=12, fg_color="#3
 menu_frame.place(x=-menu_width, y=60, anchor="nw")  # hidden outside window
 
 # Example contents inside the menu
-menu_items = ["Home", "My Bookings", "Offers", "Support", "Logout"]
+menu_items = ["Home", "My Bookings", "Offers", "Support", "LogIn", "SignIn"]
 for item in menu_items:
     btn = ctk.CTkButton(
         menu_frame,
