@@ -1,10 +1,3 @@
-# -----------------------------------------------------
-# Project Name : Flight Ticket Booking System
-# Subject      : Computer Science (Class 12 - CBSE)
-# Developed By : (Your Name)
-# Language     : Python
-# GUI Library  : CustomTkinter & tkcalendar
-# -----------------------------------------------------
 
 import customtkinter as ctk
 from customtkinter import CTkScrollableFrame
