@@ -7,12 +7,12 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 app = ctk.CTk()
-app.title("LogIn Page")
+app.title("Login Page")
 app.geometry("600x500")
 
 
 # Title at top-center
-login_label = ctk.CTkLabel(app, text="LogIn", font=("Arial", 32, "bold"))
+login_label = ctk.CTkLabel(app, text="Login", font=("Arial", 32, "bold"))
 login_label.pack(pady=40)
 
 # Frame for center inputs
