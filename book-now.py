@@ -1,163 +1,171 @@
-
 import customtkinter as ctk
-from customtkinter import CTkScrollableFrame
-from tkcalendar import Calendar
-from datetime import date
-from PIL import Image  # ✅ no ImageTk needed
+from PIL import Image, ImageFilter
+import os
 
-# ----------------------- MAIN WINDOW -----------------------
+# ---------------- CONFIG ----------------
+BLUE = {"fg": "#1E79B5", "hover": "#248ECF"}
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 root = ctk.CTk()
-root.title("Flight Tickets")
-root.geometry('900x600')
+root.title("Book Flight")
 
-# ----------------------- BACKGROUND IMAGE (FIXED) -----------------------
-bg_image = Image.open("flight-ticket-booking-service.jpg")
+IMAGE_PATH = "flight-ticket-booking-service.jpg"
+has_bg = os.path.exists(IMAGE_PATH)
 
-# ✅ Safe for old CustomTkinter — uses CTkImage, not ImageTk
-bg_photo = ctk.CTkImage(light_image=bg_image, dark_image=bg_image,
-                        size=(root.winfo_screenwidth(), root.winfo_screenheight()))
+# ---------------- BACKGROUND ----------------
+if has_bg:
+    root.state("zoomed")
+    w, h = root.winfo_screenwidth(), root.winfo_screenheight()
+    img = Image.open(IMAGE_PATH).resize((w, h)).filter(ImageFilter.GaussianBlur(5))
+    bg_img = ctk.CTkImage(img, size=(w, h))
+    ctk.CTkLabel(root, image=bg_img, text="").place(relx=0.5, rely=0.5, anchor="center")
+else:
+    root.configure(fg_color="#1E1E1E")
 
-bg_label = ctk.CTkLabel(master=root, image=bg_photo, text="")
-bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
+# ---------------- MAIN FRAME ----------------
+main = ctk.CTkFrame(root, width=900, height=600, corner_radius=50, fg_color="#1F1F1F",
+                    border_width=2, border_color="#444")
+main.place(relx=0.5, rely=0.5, anchor="center")
 
-# ----------------------- SCROLLABLE MAIN FRAME -----------------------
-main_frame = ctk.CTkScrollableFrame(root, fg_color="#3a3a3a", corner_radius=10)
-main_frame.pack(fill="both", expand=True, padx=40, pady=20)
+ctk.CTkLabel(main, text="Search for Flights",
+             font=("Segoe UI Semibold", 33, "bold"),
+             text_color="#FFDFA6").pack(pady=(25, 10))
 
-# ----------------------- FUNCTION SECTION -----------------------
-def open_calendar(entry_widget):
-    """Function to open a date picker"""
-    top = ctk.CTkToplevel(root)
-    top.title("Select Date")
-    top.geometry("300x300")
-    top.grab_set()
+# ---------------- TRIP TYPE ----------------
+trip_var = ctk.StringVar(value="One Way")
 
-    cal = Calendar(top, selectmode="day", date_pattern="dd / mm / yyyy")
-    cal.pack(pady=20)
+def update_layout(*_):
+    departure.grid_forget()
+    return_date.grid_forget()
+    pc_btn.grid_forget()
 
-    def pick_date():
-        entry_widget.delete(0, "end")
-        entry_widget.insert(0, cal.get_date())
-        top.destroy()
+    # Always show departure date on row 1
+    departure.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
-    ctk.CTkButton(top, text="Confirm Date", command=pick_date).pack(pady=10)
-
-# ----------------------- HEADING SECTION -----------------------
-nav_frame = ctk.CTkFrame(main_frame, height=60, corner_radius=10, fg_color="#3a3a3a")
-nav_frame.pack(fill="x", pady=(10, 20))
-
-title_label = ctk.CTkLabel(nav_frame, text="✈️  Flight Tickets", font=("Arial", 28, "bold"))
-title_label.place(relx=0.5, rely=0.5, anchor="center")
-
-# ----------------------- TRIP TYPE SECTION -----------------------
-trip_frame = ctk.CTkFrame(main_frame, fg_color="#3a3a3a")
-trip_frame.pack(pady=10)
-
-ctk.CTkLabel(trip_frame, text="Trip Type:", font=("Arial", 18, "bold")).pack(pady=5)
-trip_type = ctk.StringVar(value="One Way")
-
-def update_return_date():
-    """Show or hide Return Date"""
-    if trip_type.get() == "One Way":
-        ret_label.grid_forget()
-        ret_entry.grid_forget()
-        ret_btn.grid_forget()
+    if trip_var.get() == "One Way":
+        # Show Passenger/Class on its own line (row 2)
+        pc_btn.grid(row=2, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
     else:
-        ret_label.grid(row=1, column=0, padx=10, pady=5)
-        ret_entry.grid(row=1, column=1, padx=10)
-        ret_btn.grid(row=1, column=2, padx=10)
+        # Show return date next to departure
+        return_date.grid(row=1, column=1, padx=20, pady=10, sticky="ew")
+        # Passenger/Class on next line
+        pc_btn.grid(row=2, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
 
-for t in ["One Way", "Round Trip", "Multi Way"]:
-    ctk.CTkRadioButton(trip_frame, text=t, variable=trip_type, value=t, command=update_return_date).pack(side="left", padx=10)
+trip_frame = ctk.CTkFrame(main, fg_color="#2D2D2D", corner_radius=30)
+trip_frame.pack(pady=10)
+ctk.CTkRadioButton(trip_frame, text="One Way", variable=trip_var,
+                   value="One Way", command=update_layout).pack(side="left", padx=30, pady=10)
+ctk.CTkRadioButton(trip_frame, text="Round Trip", variable=trip_var,
+                   value="Round Trip", command=update_layout).pack(side="left", padx=30, pady=10)
 
-# ----------------------- COUNTRY SELECTION -----------------------
-country_frame = ctk.CTkFrame(main_frame, fg_color="#3a3a3a")
-country_frame.pack(pady=20)
+# ---------------- INPUT FRAME ----------------
+input_frame = ctk.CTkFrame(main, fg_color="#2D2D2D", corner_radius=15)
+input_frame.pack(pady=10, padx=20, fill="x")
+input_frame.grid_columnconfigure(0, weight=1)
+input_frame.grid_columnconfigure(1, weight=1)
 
-countries = ["India", "USA", "UK", "Germany", "France", "Japan", "Canada", "Australia"]
+cities = ["New York (JFK)", "London (LHR)", "Paris (CDG)",
+          "Tokyo (HND)", "Dubai (DXB)", "Singapore (SIN)", "Sydney (SYD)"]
 
-ctk.CTkLabel(country_frame, text="From:").grid(row=0, column=0, padx=10, pady=5)
-from_country = ctk.CTkOptionMenu(country_frame, values=countries, width=150)
-from_country.grid(row=0, column=1, padx=10)
+from_dropdown = ctk.CTkOptionMenu(input_frame, values=cities)
+to_dropdown = ctk.CTkOptionMenu(input_frame, values=cities)
 
-ctk.CTkLabel(country_frame, text="To:").grid(row=0, column=2, padx=10, pady=5)
-to_country = ctk.CTkOptionMenu(country_frame, values=countries, width=150)
-to_country.grid(row=0, column=3, padx=10)
+from_dropdown.grid(row=0, column=0, padx=20, pady=15, sticky="ew")
+to_dropdown.grid(row=0, column=1, padx=20, pady=15, sticky="ew")
 
-# ----------------------- DATE SELECTION -----------------------
-date_frame = ctk.CTkFrame(main_frame, fg_color="#3a3a3a")
-date_frame.pack(pady=20)
+departure = ctk.CTkEntry(input_frame, placeholder_text="Departure Date (DD-MM-YYYY)")
+return_date = ctk.CTkEntry(input_frame, placeholder_text="Return Date (DD-MM-YYYY)")
 
-ctk.CTkLabel(date_frame, text="Departure Date:").grid(row=0, column=0, padx=10, pady=5)
-dep_entry = ctk.CTkEntry(date_frame, width=150)
-dep_entry.grid(row=0, column=1, padx=10)
-dep_entry.insert(0, date.today().strftime("%d/%m/%Y"))
-ctk.CTkButton(date_frame, text="📅", command=lambda: open_calendar(dep_entry)).grid(row=0, column=2, padx=10)
+# ---------------- PASSENGERS & CLASS ----------------
+adults = ctk.IntVar(value=1)
+children = ctk.IntVar(value=0)
+infants = ctk.IntVar(value=0)
+class_var = ctk.StringVar(value="Economy")
 
-ret_label = ctk.CTkLabel(date_frame, text="Return Date:")
-ret_entry = ctk.CTkEntry(date_frame, width=150)
-ret_btn = ctk.CTkButton(date_frame, text="📅", command=lambda: open_calendar(ret_entry))
-update_return_date()
+pc_text = ctk.StringVar()
 
-# ----------------------- PASSENGER SECTION -----------------------
-passenger_frame = ctk.CTkFrame(main_frame, fg_color="#3a3a3a")
-passenger_frame.pack(pady=20)
+def refresh_pc_label():
+    parts = [f"{adults.get()} Adult{'s' if adults.get() > 1 else ''}"]
+    if children.get(): parts.append(f"{children.get()} Child")
+    if infants.get(): parts.append(f"{infants.get()} Infant")
+    pc_text.set(", ".join(parts) + f" · {class_var.get()}")
 
-ctk.CTkLabel(passenger_frame, text="Passenger Details", font=("Arial", 18, "bold")).pack(pady=5)
-passenger_list_frame = ctk.CTkFrame(passenger_frame, fg_color="#3a3a3a")
-passenger_list_frame.pack(pady=5)
+def adjust(var, step, min_val, max_val):
+    val = var.get() + step
+    if var is infants:
+        val = max(0, min(val, adults.get()))
+    else:
+        val = max(min_val, min(val, max_val))
+    var.set(val)
+    refresh_pc_label()
 
-passengers = []
+def counter(frame, label, desc, var, min_v, max_v, row):
+    ctk.CTkLabel(frame, text=label, font=("Segoe UI Semibold", 14)).grid(row=row, column=0, sticky="w", padx=10)
+    ctk.CTkLabel(frame, text=desc, font=("Segoe UI", 11)).grid(row=row+1, column=0, sticky="w", padx=10)
 
-def add_passenger():
-    """Add a passenger"""
-    frame = ctk.CTkFrame(passenger_list_frame, fg_color="#4a4a4a", corner_radius=10)
-    frame.pack(pady=5, padx=10, fill="x")
+    ctr = ctk.CTkFrame(frame, fg_color="transparent")
+    ctr.grid(row=row, column=1, rowspan=2, sticky="e", padx=10)
 
-    p_type = ctk.StringVar(value="Adult (12+)")
-    p_class = ctk.StringVar(value="Economy")
+    ctk.CTkButton(ctr, text="—", width=30, command=lambda: adjust(var, -1, min_v, max_v)).pack(side="left")
+    ctk.CTkLabel(ctr, textvariable=var, width=40).pack(side="left", padx=5)
+    ctk.CTkButton(ctr, text="+", width=30, command=lambda: adjust(var, +1, min_v, max_v)).pack(side="left")
 
-    ctk.CTkOptionMenu(frame, values=["Adult (12+)", "Child (0-12)"], variable=p_type, width=150).pack(side="left", padx=5)
-    ctk.CTkOptionMenu(frame, values=["Economy", "Business", "First Class"], variable=p_class, width=150).pack(side="left", padx=5)
+overlay = None
 
-    remove_btn = ctk.CTkButton(
-        frame, text="X", width=30, height=30, corner_radius=4,
-        fg_color="#a83232", hover_color="#d64040", font=("Arial", 14, "bold"),
-        command=lambda f=frame: remove_passenger(f)
-    )
-    remove_btn.pack(side="left", padx=8)
+def toggle_overlay():
+    global overlay
+    if overlay and overlay.winfo_exists():
+        overlay.destroy()
+        overlay = None
+        return
 
-    passengers.append((frame, p_type, p_class))
+    overlay = ctk.CTkFrame(root, fg_color="#2A2A2A", corner_radius=16, border_width=1, border_color="#444")
+    overlay.place(relx=0.5, rely=0.52, anchor="n")
 
-def remove_passenger(frame):
-    """Remove passenger frame"""
-    frame.destroy()
-    for p in passengers:
-        if p[0] == frame:
-            passengers.remove(p)
-            break
+    row = 0
+    ctk.CTkLabel(overlay, text="Passengers", font=("Segoe UI Semibold", 16)).grid(row=row, column=0, sticky="w", padx=10, pady=8)
+    row += 1
 
-add_passenger()
-ctk.CTkButton(passenger_frame, text="Add Passenger", command=add_passenger).pack(pady=10)
+    counter(overlay, "Adults", "12+ years", adults, 1, 9, row); row += 2
+    counter(overlay, "Children", "2-11 years", children, 0, 9, row); row += 2
+    counter(overlay, "Infants", "<2 years", infants, 0, 9, row); row += 2
 
-# ----------------------- SEARCH BUTTON -----------------------
-def search_flights():
-    """Display selected info"""
-    print("----- Flight Search Summary -----")
-    print("Trip Type:", trip_type.get())
-    print("From:", from_country.get(), "→ To:", to_country.get())
-    print("Departure Date:", dep_entry.get())
-    if trip_type.get() != "One Way":
-        print("Return Date:", ret_entry.get())
-    print("Passengers:")
-    for _, p_type, p_class in passengers:
-        print(f"  {p_type.get()} - {p_class.get()}")
-    print("----------------------------------")
+    ctk.CTkLabel(overlay, text="Class", font=("Segoe UI Semibold", 16)).grid(row=row, column=0, sticky="w", padx=10, pady=8)
+    row += 1
 
-ctk.CTkButton(main_frame, text="Search Flights", command=search_flights, width=200, height=40).pack(pady=20)
+    # BLUE radio buttons
+    for text in ["Economy", "Premium Economy"]:
+        ctk.CTkRadioButton(
+            overlay, text=text, variable=class_var, value=text,
+            fg_color=BLUE["fg"], hover_color=BLUE["hover"],
+            command=refresh_pc_label
+        ).grid(row=row, column=0, sticky="w", padx=10, pady=2)
+        row += 1
 
-# ----------------------- RUN -----------------------
+    ctk.CTkButton(
+        overlay, text="Confirm",
+        fg_color=BLUE["fg"], hover_color=BLUE["hover"],
+        command=lambda: (refresh_pc_label(), toggle_overlay())
+    ).grid(row=row, column=0, padx=10, pady=12)
+
+pc_btn = ctk.CTkButton(
+    input_frame, textvariable=pc_text,
+    fg_color="#3C3C3C", hover_color="#4F4F4F",
+    corner_radius=14, anchor="w",
+    command=toggle_overlay
+)
+
+refresh_pc_label()
+update_layout()
+
+# ---------------- SEARCH BUTTON ----------------
+ctk.CTkButton(
+    main, text="Search Flights",
+    width=250, height=45,
+    fg_color=BLUE["fg"], hover_color=BLUE["hover"],
+    font=("Segoe UI", 18, "bold")
+).pack(pady=25)
+
 root.mainloop()
