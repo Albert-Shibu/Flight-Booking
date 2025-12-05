@@ -1,6 +1,76 @@
 import customtkinter as ctk
 from PIL import Image, ImageFilter
 import os
+import calendar
+from datetime import datetime
+
+# ---------------- DATE PICKER POPUP ----------------
+def open_calendar(callback):
+    top = ctk.CTkToplevel(root)
+    top.grab_set()   # <<< FIX: popup stays on top
+    top.title("Select Date")
+    top.geometry("380x350")
+    top.resizable(False, False)
+
+    year = datetime.now().year
+    month = datetime.now().month
+
+    header_frame = ctk.CTkFrame(top)
+    header_frame.pack(pady=5)
+
+    month_label = ctk.CTkLabel(header_frame, text="", font=("Segoe UI", 20, "bold"))
+    month_label.pack()
+
+    nav = ctk.CTkFrame(top)
+    nav.pack(pady=5)
+    ctk.CTkButton(nav, text="<", width=40, command=lambda: change_month(-1)).pack(side="left", padx=5)
+    ctk.CTkButton(nav, text=">", width=40, command=lambda: change_month(+1)).pack(side="left", padx=5)
+
+    cal_frame = ctk.CTkFrame(top)
+    cal_frame.pack()
+
+    def build_calendar(y, m):
+        month_label.configure(text=f"{calendar.month_name[m]} {y}")
+
+        for widget in cal_frame.winfo_children():
+            widget.destroy()
+
+        days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        header = ctk.CTkFrame(cal_frame)
+        header.pack()
+        for d in days:
+            ctk.CTkLabel(header, text=d, width=48).pack(side="left")
+
+        dates = calendar.monthcalendar(y, m)
+        for week in dates:
+            row = ctk.CTkFrame(cal_frame)
+            row.pack()
+            for day in week:
+                if day == 0:
+                    ctk.CTkLabel(row, text=" ", width=45).pack(side="left", padx=1)
+                else:
+                    btn = ctk.CTkButton(
+                        row, text=str(day), width=45,
+                        command=lambda d=day: select_date(y, m, d)
+                    )
+                    btn.pack(side="left", padx=1)
+
+    def select_date(y, m, d):
+        formatted = f"{d:02d}-{m:02d}-{y}"
+        callback(formatted)
+        top.destroy()
+
+    def change_month(delta):
+        nonlocal month, year
+        month += delta
+        if month < 1:
+            month, year = 12, year - 1
+        elif month > 12:
+            month, year = 1, year + 1
+        build_calendar(year, month)
+
+    build_calendar(year, month)
+
 
 # ---------------- CONFIG ----------------
 BLUE = {"fg": "#1E79B5", "hover": "#248ECF"}
@@ -25,7 +95,7 @@ else:
     root.configure(fg_color="#1E1E1E")
 
 # ---------------- MAIN FRAME ----------------
-main = ctk.CTkFrame(root, width=900, height=600, corner_radius=50, fg_color="#1F1F1F",
+main = ctk.CTkFrame(root, width=900, height=600, corner_radius=0, fg_color="#1F1F1F",
                     border_width=2, border_color="#444")
 main.place(relx=0.5, rely=0.5, anchor="center")
 
@@ -37,26 +107,20 @@ ctk.CTkLabel(main, text="Search for Flights",
 trip_var = ctk.StringVar(value="One Way")
 
 def update_layout(*_):
-    departure.grid_forget()
     return_date.grid_forget()
-    pc_btn.grid_forget()
+    departure.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
 
-    # Always show departure date on row 1
-    departure.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+    if trip_var.get() == "Round Trip":
+        return_date.grid(row=3, column=1, padx=20, pady=10, sticky="ew")
 
-    if trip_var.get() == "One Way":
-        # Show Passenger/Class on its own line (row 2)
-        pc_btn.grid(row=2, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
-    else:
-        # Show return date next to departure
-        return_date.grid(row=1, column=1, padx=20, pady=10, sticky="ew")
-        # Passenger/Class on next line
-        pc_btn.grid(row=2, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
+    pc_btn.grid(row=5, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
 
 trip_frame = ctk.CTkFrame(main, fg_color="#2D2D2D", corner_radius=30)
 trip_frame.pack(pady=10)
+
 ctk.CTkRadioButton(trip_frame, text="One Way", variable=trip_var,
                    value="One Way", command=update_layout).pack(side="left", padx=30, pady=10)
+
 ctk.CTkRadioButton(trip_frame, text="Round Trip", variable=trip_var,
                    value="Round Trip", command=update_layout).pack(side="left", padx=30, pady=10)
 
@@ -69,14 +133,39 @@ input_frame.grid_columnconfigure(1, weight=1)
 cities = ["New York (JFK)", "London (LHR)", "Paris (CDG)",
           "Tokyo (HND)", "Dubai (DXB)", "Singapore (SIN)", "Sydney (SYD)"]
 
+# From / To Tags
+ctk.CTkLabel(input_frame, text="From", font=("Segoe UI Semibold", 14),
+             text_color="#dcdcdc").grid(row=0, column=0, padx=20, pady=(10, 0), sticky="w")
+
+ctk.CTkLabel(input_frame, text="To", font=("Segoe UI Semibold", 14),
+             text_color="#dcdcdc").grid(row=0, column=1, padx=20, pady=(10, 0), sticky="w")
+
 from_dropdown = ctk.CTkOptionMenu(input_frame, values=cities)
 to_dropdown = ctk.CTkOptionMenu(input_frame, values=cities)
 
-from_dropdown.grid(row=0, column=0, padx=20, pady=15, sticky="ew")
-to_dropdown.grid(row=0, column=1, padx=20, pady=15, sticky="ew")
+from_dropdown.grid(row=1, column=0, padx=20, pady=(0, 15), sticky="ew")
+to_dropdown.grid(row=1, column=1, padx=20, pady=(0, 15), sticky="ew")
 
-departure = ctk.CTkEntry(input_frame, placeholder_text="Departure Date (DD-MM-YYYY)")
-return_date = ctk.CTkEntry(input_frame, placeholder_text="Return Date (DD-MM-YYYY)")
+# ---- DATE BUTTONS ----
+departure_date_text = ctk.StringVar(value="Departure Date")
+return_date_text = ctk.StringVar(value="Return Date")
+
+departure = ctk.CTkButton(
+    input_frame, textvariable=departure_date_text,
+    fg_color="#3C3C3C", hover_color="#4F4F4F",
+    corner_radius=14,
+    command=lambda: open_calendar(lambda d: departure_date_text.set(d))
+)
+
+return_date = ctk.CTkButton(
+    input_frame, textvariable=return_date_text,
+    fg_color="#3C3C3C", hover_color="#4F4F4F",
+    corner_radius=14,
+    command=lambda: open_calendar(lambda d: return_date_text.set(d))
+)
+
+departure.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+
 
 # ---------------- PASSENGERS & CLASS ----------------
 adults = ctk.IntVar(value=1)
@@ -135,8 +224,7 @@ def toggle_overlay():
     ctk.CTkLabel(overlay, text="Class", font=("Segoe UI Semibold", 16)).grid(row=row, column=0, sticky="w", padx=10, pady=8)
     row += 1
 
-    # BLUE radio buttons
-    for text in ["Economy", "Premium Economy"]:
+    for text in ["Economy", "Premium(First/Business)"]:
         ctk.CTkRadioButton(
             overlay, text=text, variable=class_var, value=text,
             fg_color=BLUE["fg"], hover_color=BLUE["hover"],
@@ -150,12 +238,17 @@ def toggle_overlay():
         command=lambda: (refresh_pc_label(), toggle_overlay())
     ).grid(row=row, column=0, padx=10, pady=12)
 
+# PASSENGER LABEL
+ctk.CTkLabel(input_frame, text="Passengers & Class",
+             font=("Segoe UI Semibold", 14), text_color="#dcdcdc").grid(row=4, column=0, padx=20, pady=(5, 0), sticky="w")
+
 pc_btn = ctk.CTkButton(
     input_frame, textvariable=pc_text,
     fg_color="#3C3C3C", hover_color="#4F4F4F",
-    corner_radius=14, anchor="w",
-    command=toggle_overlay
+    corner_radius=14, anchor="w", command=toggle_overlay
 )
+
+pc_btn.grid(row=5, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
 
 refresh_pc_label()
 update_layout()
@@ -164,6 +257,7 @@ update_layout()
 ctk.CTkButton(
     main, text="Search Flights",
     width=250, height=45,
+    corner_radius=30,          # <<< Rounded Button
     fg_color=BLUE["fg"], hover_color=BLUE["hover"],
     font=("Segoe UI", 18, "bold")
 ).pack(pady=25)
