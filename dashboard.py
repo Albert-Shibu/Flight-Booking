@@ -64,17 +64,24 @@ class DashboardPage(ctk.CTkFrame):
         menu_frame = ctk.CTkFrame(root, width=menu_width, corner_radius=12, fg_color="#353935")
         menu_frame.place(x=-menu_width, y=60, anchor="nw")
 
-        menu_items = ["Home", "My Bookings", "Offers", "Support", "LogIn", "SignIn"]
-        for item in menu_items:
+        menu_items = {
+            "Home": None,
+            "My Bookings": None,
+            "LogIn": lambda: controller.show_page("LoginPage"),
+            "SignIn": lambda: controller.show_page("SignInPage")
+        }
+
+        for text, action in menu_items.items():
             btn = ctk.CTkButton(
                 menu_frame,
-                text=item,
+                text=text,
                 corner_radius=12,
                 height=40,
                 fg_color="transparent",
                 hover_color="#333333",
                 anchor="w",
                 font=("Segoe UI", 15),
+                command=action
             )
             btn.pack(fill="x", pady=2, padx=10)
 

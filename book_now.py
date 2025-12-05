@@ -27,9 +27,95 @@ class FlightBookingApp:
         else:
             self.root.configure(fg_color="#1E1E1E")
 
+        # ==========================================================
+        #                     TOP NAVIGATION BAR
+        # ==========================================================
+        nav_frame = ctk.CTkFrame(self.root, height=60, corner_radius=0)
+        nav_frame.place(relx=0, rely=0, relwidth=1)
+
+        # --- Menu Button ---
+        menu_button = ctk.CTkButton(
+            nav_frame,
+            text="☰",
+            width=50,
+            height=40,
+            font=("Segoe UI", 20, "bold"),
+            corner_radius=10,
+            fg_color="#3B8ED0",
+            hover_color="#90EE90"
+        )
+        menu_button.place(x=15, y=10)
+
+        # --- Title ---
+        title_label = ctk.CTkLabel(
+            nav_frame,
+            text="Flight Ticket Booking",
+            font=("Segoe UI Semibold", 20)
+        )
+        title_label.place(relx=0.5, rely=0.5, anchor="center")
+
+        # ==========================================================
+        #                     SLIDE-OUT MENU PANEL
+        # ==========================================================
+        menu_width = 250
+        self.is_menu_open = False
+
+        menu_frame = ctk.CTkFrame(self.root, width=menu_width, fg_color="#353935", corner_radius=12)
+        menu_frame.place(x=-menu_width, y=60)
+
+        # --- Menu Buttons ---
+        menu_items = {
+            "Home": lambda: print("Home clicked"),
+            "My Bookings": lambda: print("Bookings clicked"),
+            "LogIn": lambda: print("Login clicked"),
+            "SignIn": lambda: print("SignIn clicked"),
+        }
+
+        for text, action in menu_items.items():
+            btn = ctk.CTkButton(
+                menu_frame,
+                text=text,
+                corner_radius=12,
+                height=40,
+                fg_color="transparent",
+                hover_color="#4A4A4A",
+                anchor="w",
+                font=("Segoe UI", 15),
+                command=action
+            )
+            btn.pack(fill="x", pady=3, padx=10)
+
+        # --- Menu Animation Function ---
+        def animate_menu(target_x):
+            current_x = menu_frame.winfo_x()
+            step = 20 if target_x > current_x else -20
+
+            def slide():
+                nonlocal current_x
+                if (step > 0 and current_x < target_x) or (step < 0 and current_x > target_x):
+                    current_x += step
+                    menu_frame.place(x=current_x, y=60)
+                    self.root.after(10, slide)
+                else:
+                    menu_frame.place(x=target_x, y=60)
+
+            slide()
+
+        # --- Toggle Function ---
+        def toggle_menu():
+            if self.is_menu_open:
+                animate_menu(-menu_width)
+                self.is_menu_open = False
+            else:
+                menu_frame.lift()
+                animate_menu(0)
+                self.is_menu_open = True
+
+        menu_button.configure(command=toggle_menu)
+
         # ---------- Main Frame ----------
         self.main = ctk.CTkFrame(
-            self.root, width=900, height=600, corner_radius=0,
+            self.root, width=900, height=600, corner_radius=20,
             fg_color="#1F1F1F", border_width=2, border_color="#444"
         )
         self.main.place(relx=0.5, rely=0.5, anchor="center")
@@ -134,6 +220,9 @@ class FlightBookingApp:
             fg_color=BLUE["fg"], hover_color=BLUE["hover"],
             font=("Segoe UI", 18, "bold")
         ).pack(pady=25)
+
+        self.make_round(self.root, radius=20)
+
 
     # -----------------------------------------------------------
     #                 Calendar Popup
@@ -298,6 +387,15 @@ class FlightBookingApp:
             self.return_date.grid(row=3, column=1, padx=20, pady=10, sticky="ew")
 
         self.pc_btn.grid(row=5, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
+
+    def make_round(self, widget, radius=20):
+        try:
+            widget.configure(corner_radius=radius)
+        except:
+            pass
+
+        for child in widget.winfo_children():
+            self.make_round(child, radius)
 
 
 # ===================================================================

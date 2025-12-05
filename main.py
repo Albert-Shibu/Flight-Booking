@@ -2,6 +2,7 @@ import customtkinter as ctk
 from User_credentials_LogIn import LoginPage
 from User_Credentials_SignIn import SignInPage
 from dashboard import DashboardPage
+from book_now import FlightBookingApp
 
 class App(ctk.CTk):
     def __init__(self):
