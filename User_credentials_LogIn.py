@@ -14,6 +14,19 @@ class LoginPage(ctk.CTkFrame):
         center = ctk.CTkFrame(root, fg_color="transparent")
         center.place(relx=0.5, rely=0.5, anchor="center")
 
+        back_button = ctk.CTkButton(
+            root,
+            text="Book Now",
+            width=60,
+            height=40,
+            font=("Segoe UI", 20, "bold"),
+            corner_radius=10,
+            hover_color="#90EE90",
+            command=lambda: controller.show_page("FlightBookingPage")
+        )
+        back_button.place(relx=1.0, x=-15, y=10, anchor="ne")
+
+
         # content frame
         content = ctk.CTkFrame(center)
         content.pack(padx=20, pady=20)

@@ -2,7 +2,7 @@ import customtkinter as ctk
 from User_credentials_LogIn import LoginPage
 from User_Credentials_SignIn import SignInPage
 from dashboard import DashboardPage
-from book_now import FlightBookingApp
+from book_now import FlightBookingPage
 
 class App(ctk.CTk):
     def __init__(self):
@@ -21,13 +21,13 @@ class App(ctk.CTk):
         container.grid_columnconfigure(0, weight=1)
 
         # Register pages
-        for PageClass in (LoginPage, SignInPage, DashboardPage):
+        for PageClass in (LoginPage, SignInPage, DashboardPage, FlightBookingPage):
             page_name = PageClass.__name__
             frame = PageClass(container, self)
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        # Start with
+        # Start the app on the Book Now page
         self.show_page("DashboardPage")
 
     def show_page(self, page_name):

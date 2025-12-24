@@ -5,16 +5,29 @@ import calendar
 from datetime import datetime
 
 
-class FlightBookingApp:
-    def __init__(self, root):
-        self.root = root
+class FlightBookingPage(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        self.controller = controller
+        self.root = controller  # The main window
+
         self.root.title("Book Flight")
+        # OPTIONAL: Windows only supports zoomed
+        try:
+            self.root.state("zoomed")
+        except:
+            pass
 
         BLUE = {"fg": "#1E79B5", "hover": "#248ECF"}
         self.BLUE = BLUE
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
+
+        # Example title label (replace with your actual UI later)
+        title = ctk.CTkLabel(self, text="Book Your Flight", font=("Arial", 24))
+        title.pack(pady=20)
 
         # ---------- Background ----------
         IMAGE_PATH = "flight-ticket-booking-service.jpg"
@@ -397,11 +410,3 @@ class FlightBookingApp:
         for child in widget.winfo_children():
             self.make_round(child, radius)
 
-
-# ===================================================================
-#                                RUN APP
-# ===================================================================
-if __name__ == "__main__":
-    root = ctk.CTk()
-    app = FlightBookingApp(root)
-    root.mainloop()
